@@ -1,0 +1,121 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:17-alpine
+    container_name: xbook-postgres
+    environment:
+      POSTGRES_USER: xbook_admin
+      POSTGRES_PASSWORD: xbook_dev_password_change_in_production
+      POSTGRES_DB: xbook
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --locale=C"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./deploy/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - xbook-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U xbook_admin -d xbook"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: xbook-redis
+    command: redis-server --appendonly yes --requirepass xbook_redis_password
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - xbook-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: xbook-backend
+    environment:
+      # Database
+      DATABASE_URL: postgresql://xbook_admin:xbook_dev_password_change_in_production@postgres:5432/xbook
+
+      # Redis
+      REDIS_URL: redis://:xbook_redis_password@redis:6379/0
+
+      # JWT
+      SECRET_KEY: dev-secret-key-change-in-production-use-long-random-string
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 10080
+
+      # API
+      API_V1_STR: /api/v1
+      PROJECT_NAME: XBook
+
+      # CORS
+      BACKEND_CORS_ORIGINS: '["http://localhost:3000","http://localhost:8000"]'
+
+      # Environment
+      ENVIRONMENT: development
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./data:/data
+      - backend_cache:/app/.cache
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - xbook-network
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: xbook-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NODE_ENV: development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend
+    networks:
+      - xbook-network
+    command: npm run dev
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    name: xbook-postgres-data
+  redis_data:
+    name: xbook-redis-data
+  backend_cache:
+    name: xbook-backend-cache
+
+networks:
+  xbook-network:
+    name: xbook-network
+    driver: bridge

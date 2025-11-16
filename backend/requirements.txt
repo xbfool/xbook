@@ -1,0 +1,55 @@
+# Core Framework
+fastapi==0.115.0
+uvicorn[standard]==0.32.1
+pydantic==2.10.3
+pydantic-settings==2.7.0
+
+# Database
+sqlalchemy==2.0.36
+asyncpg==0.30.0
+alembic==1.14.0
+psycopg2-binary==2.9.10
+
+# Redis
+redis==5.2.1
+hiredis==3.0.0
+
+# Authentication
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.19
+bcrypt==4.2.1
+
+# Japanese NLP
+sudachipy==0.6.9
+sudachidict-core==20241021
+
+# English NLP
+spacy==3.8.2
+# Run after install: python -m spacy download en_core_web_sm
+
+# Text Processing
+PyMuPDF==1.24.14
+ebooklib==0.18
+beautifulsoup4==4.12.3
+lxml==5.3.0
+
+# Translation APIs (optional, for future)
+# deep-translator==1.11.4
+# googletrans==4.0.0rc1
+
+# Audio Processing
+# aeneas==1.7.3  # Install separately if needed
+
+# Utilities
+python-dateutil==2.9.0
+pytz==2024.2
+httpx==0.28.1
+orjson==3.10.12
+
+# Development
+pytest==8.3.4
+pytest-asyncio==0.24.0
+pytest-cov==6.0.0
+black==24.10.0
+ruff==0.8.4
