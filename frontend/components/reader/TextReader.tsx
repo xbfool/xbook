@@ -7,14 +7,14 @@ interface TextReaderProps {
   language: string;
 }
 
-const CHARS_PER_PAGE = 2000; // Characters per page
-
 export default function TextReader({ content, language }: TextReaderProps) {
   const [selectedText, setSelectedText] = useState('');
   const [showPopup, setShowPopup] = useState(false);
   const [popupData, setPopupData] = useState<any>(null);
   const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
   const [currentPage, setCurrentPage] = useState(0);
+  const [charsPerPage, setCharsPerPage] = useState(800); // Adjustable page size
+  const [showSettings, setShowSettings] = useState(false);
 
   // Split content into pages
   const pages = useMemo(() => {
@@ -24,7 +24,7 @@ export default function TextReader({ content, language }: TextReaderProps) {
     let currentLength = 0;
 
     for (const para of paragraphs) {
-      if (currentLength + para.length > CHARS_PER_PAGE && currentPageText) {
+      if (currentLength + para.length > charsPerPage && currentPageText) {
         pagesArray.push(currentPageText);
         currentPageText = para + '\n';
         currentLength = para.length;
@@ -39,7 +39,7 @@ export default function TextReader({ content, language }: TextReaderProps) {
     }
 
     return pagesArray.length > 0 ? pagesArray : [content];
-  }, [content]);
+  }, [content, charsPerPage]);
 
   const totalPages = pages.length;
 
@@ -126,9 +126,20 @@ export default function TextReader({ content, language }: TextReaderProps) {
             ← 上一页
           </button>
 
-          <span className="text-sm font-medium">
-            第 {currentPage + 1} 页 / 共 {totalPages} 页
-          </span>
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium">
+              第 {currentPage + 1} 页 / 共 {totalPages} 页
+            </span>
+
+            {/* Settings Button */}
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className="px-3 py-1 text-sm border rounded-lg hover:bg-accent"
+              title="阅读设置"
+            >
+              ⚙️ 设置
+            </button>
+          </div>
 
           <button
             onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
@@ -137,6 +148,42 @@ export default function TextReader({ content, language }: TextReaderProps) {
           >
             下一页 →
           </button>
+        </div>
+      )}
+
+      {/* Settings Panel */}
+      {showSettings && (
+        <div className="sticky top-36 z-10 mb-4 bg-background border rounded-lg p-4 shadow-lg">
+          <h3 className="font-semibold mb-3">阅读设置</h3>
+
+          <div className="space-y-3">
+            <div>
+              <label className="text-sm font-medium mb-2 block">
+                每页字数: {charsPerPage}
+              </label>
+              <input
+                type="range"
+                min="400"
+                max="3000"
+                step="200"
+                value={charsPerPage}
+                onChange={(e) => {
+                  setCharsPerPage(Number(e.target.value));
+                  setCurrentPage(0); // Reset to first page
+                }}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                <span>少 (400)</span>
+                <span>中 (1600)</span>
+                <span>多 (3000)</span>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t text-sm text-muted-foreground">
+              当前: {charsPerPage}字/页 = 约{totalPages}页
+            </div>
+          </div>
         </div>
       )}
 
