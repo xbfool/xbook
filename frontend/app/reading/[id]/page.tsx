@@ -31,7 +31,9 @@ export default async function ReadingPage({ params }: PageProps) {
 
 async function ReaderContent({ textId }: { textId: string }) {
   // Fetch text from API
-  const res = await fetch(`http://localhost:8000/api/v1/texts/${textId}`, {
+  // Use API_URL for SSR (container to container), NEXT_PUBLIC_API_URL for client
+  const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const res = await fetch(`${apiUrl}/api/v1/texts/${textId}`, {
     cache: 'no-store',
   });
 

@@ -2,7 +2,9 @@ import Link from 'next/link';
 
 export default async function LibraryPage() {
   // Fetch texts from API
-  const res = await fetch('http://localhost:8000/api/v1/texts', {
+  // Use API_URL for SSR (container to container), NEXT_PUBLIC_API_URL for client
+  const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const res = await fetch(`${apiUrl}/api/v1/texts`, {
     cache: 'no-store',
   });
 

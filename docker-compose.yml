@@ -90,7 +90,10 @@ services:
       dockerfile: Dockerfile
     container_name: xbook-frontend
     environment:
+      # For client-side (browser) API calls
       NEXT_PUBLIC_API_URL: http://localhost:8000
+      # For server-side (SSR) API calls
+      API_URL: http://xbook-backend:8000
       NODE_ENV: development
     ports:
       - "3000:3000"
