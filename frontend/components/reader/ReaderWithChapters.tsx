@@ -21,6 +21,7 @@ export default function ReaderWithChapters({
   wordCount
 }: ReaderWithChaptersProps) {
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
+  const [showTOC, setShowTOC] = useState(false);
 
   // Detect chapters from content
   const detectChapters = () => {
@@ -55,8 +56,6 @@ export default function ReaderWithChapters({
 
   const chapters = detectChapters();
   const currentChapter = chapters[currentChapterIndex];
-
-  const [showTOC, setShowTOC] = useState(false);
 
   return (
     <div className="flex min-h-screen">
