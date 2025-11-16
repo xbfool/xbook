@@ -49,8 +49,9 @@ if [ ! -d "$DICT_DIR/jlpt/jlpt-vocab" ]; then
     echo "📥 Downloading JLPT Vocabulary..."
     cd "$DICT_DIR/jlpt"
 
-    # Clone jlpt-vocab repository (using SSH)
-    git clone --depth 1 git@github.com:stephenmk/jlpt-vocab.git
+    # Try SSH first, fallback to HTTPS
+    git clone --depth 1 git@github.com:stephenmk/jlpt-vocab.git 2>/dev/null || \
+    git clone --depth 1 https://github.com/stephenmk/jlpt-vocab.git
 
     cd - > /dev/null
     echo "✅ JLPT vocabulary downloaded"
@@ -89,8 +90,9 @@ if [ ! -d "$DICT_DIR/english/COCA-WordFrequency" ]; then
     echo "📥 Downloading COCA Top 5000..."
     cd "$DICT_DIR/english"
 
-    # Clone using SSH
-    git clone --depth 1 git@github.com:brucewlee/COCA-WordFrequency.git
+    # Try SSH first, fallback to HTTPS
+    git clone --depth 1 git@github.com:brucewlee/COCA-WordFrequency.git 2>/dev/null || \
+    git clone --depth 1 https://github.com/brucewlee/COCA-WordFrequency.git
 
     cd - > /dev/null
     echo "✅ COCA frequency list downloaded"
