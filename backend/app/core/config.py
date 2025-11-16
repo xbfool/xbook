@@ -1,6 +1,7 @@
 """Application configuration"""
 
-from typing import List
+import json
+from typing import List, Any
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -26,23 +27,33 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080  # 7 days
 
     # CORS
-    BACKEND_CORS_ORIGINS: List[str] = []
+    BACKEND_CORS_ORIGINS: str = ""
 
-    @field_validator("BACKEND_CORS_ORIGINS", mode="before")
-    @classmethod
-    def assemble_cors_origins(cls, v: str | List[str]) -> List[str]:
-        if isinstance(v, str):
-            return [i.strip() for i in v.split(",")]
-        elif isinstance(v, list):
-            return v
-        raise ValueError(v)
+    def get_cors_origins(self) -> List[str]:
+        """Parse CORS origins from string"""
+        if not self.BACKEND_CORS_ORIGINS:
+            return []
+        # Try to parse as JSON first
+        if self.BACKEND_CORS_ORIGINS.startswith("["):
+            try:
+                return json.loads(self.BACKEND_CORS_ORIGINS)
+            except json.JSONDecodeError:
+                pass
+        # Otherwise split by comma
+        return [i.strip() for i in self.BACKEND_CORS_ORIGINS.split(",") if i.strip()]
 
     # Environment
     ENVIRONMENT: str = "development"
 
     # File Upload
     MAX_UPLOAD_SIZE: int = 52428800  # 50MB
-    ALLOWED_EXTENSIONS: List[str] = ["pdf", "epub", "txt", "mp3", "wav", "m4a"]
+    ALLOWED_EXTENSIONS: str = "pdf,epub,txt,mp3,wav,m4a"
+
+    def get_allowed_extensions(self) -> List[str]:
+        """Parse allowed extensions from string"""
+        if not self.ALLOWED_EXTENSIONS:
+            return []
+        return [i.strip() for i in self.ALLOWED_EXTENSIONS.split(",") if i.strip()]
 
     # Logging
     LOG_LEVEL: str = "INFO"
