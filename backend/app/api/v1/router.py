@@ -2,8 +2,13 @@
 
 from fastapi import APIRouter
 
+from .endpoints import tokenizer
+
 # Create main API router
 api_router = APIRouter()
+
+# Include tokenizer endpoints
+api_router.include_router(tokenizer.router, prefix="/tokenizer", tags=["tokenizer"])
 
 # Import and include sub-routers here as they are created
 # from .endpoints import auth, users, texts, vocabulary, reviews
