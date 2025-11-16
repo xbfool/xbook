@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import TextReader from './TextReader';
-import ChapterNavigator from './ChapterNavigator';
 import Link from 'next/link';
 
 interface ReaderWithChaptersProps {
