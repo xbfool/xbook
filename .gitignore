@@ -42,10 +42,10 @@ dist/
 pgdata/
 *.dump
 
-# Environment
-.env
-.env.local
-.env.*.local
+# Environment (keeping for personal use)
+# .env
+# .env.local
+# .env.*.local
 secrets.env
 
 # IDE
