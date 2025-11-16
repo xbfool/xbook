@@ -102,15 +102,27 @@ async def upload_book(
                 detail=f"Failed to parse file: {parsed_data.get('error')}"
             )
 
+        # Calculate proper word count based on language
+        content = parsed_data['content']
+        language = parsed_data['language']
+
+        if language == 'ja':
+            # Japanese: count characters (excluding spaces and punctuation)
+            import re
+            word_count = len(re.findall(r'[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]', content))
+        else:
+            # English: count words by splitting
+            word_count = len(content.split())
+
         # Create text record in database
         text = TextModel(
             user_id=DEFAULT_USER_ID,
             title=parsed_data['title'],
-            content=parsed_data['content'],
-            language=parsed_data['language'],
+            content=content,
+            language=language,
             author=parsed_data.get('author'),
             source_type=parsed_data['source_type'],
-            word_count=parsed_data['word_count'],
+            word_count=word_count,
         )
 
         db.add(text)

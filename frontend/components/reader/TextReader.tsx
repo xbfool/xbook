@@ -1,17 +1,47 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 interface TextReaderProps {
   content: string;
   language: string;
 }
 
+const CHARS_PER_PAGE = 2000; // Characters per page
+
 export default function TextReader({ content, language }: TextReaderProps) {
   const [selectedText, setSelectedText] = useState('');
   const [showPopup, setShowPopup] = useState(false);
   const [popupData, setPopupData] = useState<any>(null);
   const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
+  const [currentPage, setCurrentPage] = useState(0);
+
+  // Split content into pages
+  const pages = useMemo(() => {
+    const paragraphs = content.split('\n');
+    const pagesArray: string[] = [];
+    let currentPageText = '';
+    let currentLength = 0;
+
+    for (const para of paragraphs) {
+      if (currentLength + para.length > CHARS_PER_PAGE && currentPageText) {
+        pagesArray.push(currentPageText);
+        currentPageText = para + '\n';
+        currentLength = para.length;
+      } else {
+        currentPageText += para + '\n';
+        currentLength += para.length;
+      }
+    }
+
+    if (currentPageText) {
+      pagesArray.push(currentPageText);
+    }
+
+    return pagesArray.length > 0 ? pagesArray : [content];
+  }, [content]);
+
+  const totalPages = pages.length;
 
   const handleMouseUp = async (e: React.MouseEvent) => {
     const selection = window.getSelection();
@@ -85,13 +115,63 @@ export default function TextReader({ content, language }: TextReaderProps) {
 
   return (
     <div className="relative">
+      {/* Page Navigation */}
+      {totalPages > 1 && (
+        <div className="sticky top-20 z-10 mb-4 flex items-center justify-between bg-background/95 backdrop-blur border rounded-lg p-3">
+          <button
+            onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+            disabled={currentPage === 0}
+            className="px-4 py-2 border rounded-lg hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            ← 上一页
+          </button>
+
+          <span className="text-sm font-medium">
+            第 {currentPage + 1} 页 / 共 {totalPages} 页
+          </span>
+
+          <button
+            onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
+            disabled={currentPage === totalPages - 1}
+            className="px-4 py-2 border rounded-lg hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            下一页 →
+          </button>
+        </div>
+      )}
+
+      {/* Content */}
       <div
-        className="prose prose-lg max-w-none leading-relaxed"
+        className="prose prose-lg max-w-none leading-relaxed min-h-[600px]"
         onMouseUp={handleMouseUp}
         style={{ userSelect: 'text', cursor: 'text' }}
       >
-        <p className="whitespace-pre-wrap text-lg">{content}</p>
+        <p className="whitespace-pre-wrap text-lg">{pages[currentPage]}</p>
       </div>
+
+      {/* Bottom Navigation */}
+      {totalPages > 1 && (
+        <div className="mt-8 flex items-center justify-center gap-2">
+          {Array.from({ length: Math.min(totalPages, 10) }, (_, i) => {
+            const pageNum = Math.floor(currentPage / 10) * 10 + i;
+            if (pageNum >= totalPages) return null;
+
+            return (
+              <button
+                key={pageNum}
+                onClick={() => setCurrentPage(pageNum)}
+                className={`w-10 h-10 rounded-lg border ${
+                  currentPage === pageNum
+                    ? 'bg-primary text-primary-foreground'
+                    : 'hover:bg-accent'
+                }`}
+              >
+                {pageNum + 1}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Translation Popup */}
       {showPopup && popupData && (

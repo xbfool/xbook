@@ -91,3 +91,6 @@ alembic/versions/*.pyc
 Thumbs.db
 .Spotlight-V100
 .Trashes
+data/dictionaries/*
+\!data/dictionaries/.gitkeep
+\!data/dictionaries/*/. gitkeep
